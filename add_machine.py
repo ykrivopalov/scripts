@@ -61,24 +61,6 @@ def make_rdp_script(host, title):
     os.system('chmod +x ' + script_path)
 
 
-def rpc_script(host):
-    return '\n'.join(
-        ['#!/bin/sh'] +
-        read_credentials_script(host) +
-        ['for SERVICE in ${@:2}',
-         'do net rpc service $1 $SERVICE -I {} -U $USERNAME%$PASSWORD'.format(host),
-         'done']
-    )
-
-
-def make_rpc_script(host, title):
-    script_path = '{}/rpc/{}.sh'.format(HOME_DIR, title)
-    ensure_dir_of_file(script_path)
-    with open(script_path, 'w') as script_file:
-        script_file.writelines(rpc_script(host))
-    os.system('chmod +x ' + script_path)
-
-
 def link_smb(host, title):
     source = '/smb/{}'.format(host)
     target = HOME_DIR + '/mnt/' + title
@@ -123,7 +105,6 @@ def main():
 
     if is_port_open(host, SMB):
         print("setting up SMB")
-        make_rpc_script(host, title)
         link_smb(host, title)
 
     if is_port_open(host, RDP):

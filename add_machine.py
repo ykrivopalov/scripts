@@ -21,8 +21,12 @@ RDP = 3389
 
 def _is_port_open(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(3)
     result = sock.connect_ex((host, port))
-    return result == 0
+    if result == 0:
+        return True
+
+    print('{}:{} is unaccessible'.format(host, port))
 
 
 def _parse_uri(uri):

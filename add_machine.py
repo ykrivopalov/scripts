@@ -1,8 +1,8 @@
 #!/bin/python
 
-# Script that simplify access to remote host.
-# Can mount smb shares, mount by ssh, generate scripts for rdp and ssh access.
-# Depends on secret-tool, autofs, sshpass, xfreerdp
+"""Script that simplify access to remote host.
+Can mount smb shares, mount by ssh, generate scripts for rdp and ssh access.
+Depends on secret-tool, autofs, sshpass, xfreerdp"""
 
 import argparse
 import getpass
@@ -19,56 +19,56 @@ SMB = 445
 RDP = 3389
 
 
-def is_port_open(host, port):
+def _is_port_open(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((host, port))
     return result == 0
 
 
-def parse_uri(uri):
+def _parse_uri(uri):
     match = re.match('(.*)@(.*)', uri)
     return match.group(1), match.group(2)
 
 
-def read_credentials_script(host):
+def _read_credentials_script(host):
     return ['IFS=":" read USERNAME PASSWORD << EOF',
             '`secret-tool lookup target {}`'.format(host),
             'EOF']
 
 
-def rdp_script(host, title):
+def _rdp_script(host, title):
     title = '{} ({})'.format(title, host)
     return '\n'.join(
         ['#!/bin/sh'] +
-        read_credentials_script(host) +
+        _read_credentials_script(host) +
         ['xfreerdp -grab-keyboard +clipboard /size:{} /v:{}'
          ' /drive:develop,/home/yk/Develop /u:$USERNAME /p:$PASSWORD'
          ' /cert-ignore /t:"{}" &'.format(RESOLUTION, host, title)]
     )
 
 
-def ensure_dir_of_file(path):
+def _ensure_dir_of_file(path):
     dir_path = os.path.dirname(path)
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
 
-def make_rdp_script(host, title):
+def _make_rdp_script(host, title):
     script_path = '{}/rdp/{}.sh'.format(HOME_DIR, title)
-    ensure_dir_of_file(script_path)
+    _ensure_dir_of_file(script_path)
     with open(script_path, 'w') as rdp_sh:
-        rdp_sh.write(rdp_script(host, title))
+        rdp_sh.write(_rdp_script(host, title))
     os.system('chmod +x ' + script_path)
 
 
-def link_smb(host, title):
+def _link_smb(host, title):
     source = '/smb/{}'.format(host)
     target = HOME_DIR + '/mnt/' + title
     os.system('rm {}'.format(target))
     os.system('ln -s {} {}'.format(source, target))
 
 
-def main():
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument('uri', help='uri of machine to addition')
     parser.add_argument('title', help='title of machine')
@@ -77,20 +77,22 @@ def main():
     machine = args.uri
     title = args.title
 
-    user, host = parse_uri(machine)
+    user, host = _parse_uri(machine)
     password = getpass.getpass()
 
     secret = user + ':' + password
     subprocess.run(
-        ['secret-tool', 'store', '--label=' + host, 'target', host, 'created_by', 'add_machine'],
+        ['secret-tool', 'store', '--label=' + host, 'target', host,
+         'created_by', 'add_machine'],
         input=secret, universal_newlines=True)
 
-    if is_port_open(host, SMB):
+    if _is_port_open(host, SMB):
         print("setting up SMB")
-        link_smb(host, title)
+        _link_smb(host, title)
 
-    if is_port_open(host, RDP):
+    if _is_port_open(host, RDP):
         print("setting up RDP")
-        make_rdp_script(host, title)
+        _make_rdp_script(host, title)
 
-main()
+
+_main()

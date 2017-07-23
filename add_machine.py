@@ -2,7 +2,7 @@
 
 """Script that simplify access to remote host.
 Can mount smb shares, mount by ssh, generate scripts for rdp and ssh access.
-Depends on secret-tool, autofs, sshpass, xfreerdp"""
+Depends on pass, xfreerdp"""
 
 import argparse
 import getpass
@@ -32,7 +32,7 @@ def _parse_uri(uri):
 
 def _read_credentials_script(host):
     return ['IFS=":" read USERNAME PASSWORD << EOF',
-            '`secret-tool lookup target {}`'.format(host),
+            '`pass show tmp/{}`'.format(host),
             'EOF']
 
 
@@ -81,9 +81,9 @@ def _main():
     password = getpass.getpass()
 
     secret = user + ':' + password
+    secret = secret + '\n' + secret + '\n'
     subprocess.run(
-        ['secret-tool', 'store', '--label=' + host, 'target', host,
-         'created_by', 'add_machine'],
+        ['pass', 'insert', '-f', 'tmp/' + host],
         input=secret, universal_newlines=True)
 
     if _is_port_open(host, SMB):

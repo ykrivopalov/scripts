@@ -41,7 +41,8 @@ def rdp_script(host, title):
     return '\n'.join(
         ['#!/bin/sh'] +
         read_credentials_script(host) +
-        ['xfreerdp -grab-keyboard +clipboard /size:{} /v:{} /u:$USERNAME /p:$PASSWORD'
+        ['xfreerdp -grab-keyboard +clipboard /size:{} /v:{}'
+         ' /drive:develop,/home/yk/Develop /u:$USERNAME /p:$PASSWORD'
          ' /cert-ignore /t:"{}" &'.format(RESOLUTION, host, title)]
     )
 

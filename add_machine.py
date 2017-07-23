@@ -12,7 +12,7 @@ import socket
 import subprocess
 
 HOME_DIR = os.path.expanduser('~')
-RESOLUTION = '1920x1040'
+RESOLUTION = '1366x728'
 
 SSH = 22
 SMB = 445

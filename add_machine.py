@@ -68,24 +68,6 @@ def link_smb(host, title):
     os.system('ln -s {} {}'.format(source, target))
 
 
-def link_ssh(host, user, title):
-    source = '/ssh/{}@{}'.format(user, host)
-    target = HOME_DIR + '/mnt/' + title
-    os.system('rm {}'.format(target))
-    os.system('ln -s {} {}'.format(source, target))
-
-
-def make_ssh_script(host, user, title):
-    script_path = '{}/ssh/{}.sh'.format(HOME_DIR, title)
-    os.system('rm ' + script_path)
-    with open(script_path, 'w') as script_file:
-        script_file.writelines([
-            '#!/bin/sh\n',
-            'ssh {}@{}'.format(user, host)
-        ])
-    os.system('chmod +x ' + script_path)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('uri', help='uri of machine to addition')
@@ -110,11 +92,5 @@ def main():
     if is_port_open(host, RDP):
         print("setting up RDP")
         make_rdp_script(host, title)
-
-    if is_port_open(host, SSH):
-        print("setting up SSH")
-        os.system('sshpass -p {} ssh-copy-id {}@{}'.format(password, user, host))
-        make_ssh_script(host, user, title)
-        link_ssh(host, user, title)
 
 main()
